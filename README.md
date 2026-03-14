@@ -8,8 +8,8 @@ Render Markdown files in your terminal with styled output.
 |-----------------|-------------------|
 | **Bold** | Bold text |
 | *Italic* | Italic text |
-| `inline code` | Highlighted monospace |
-| Code blocks | Syntax-highlighted, indented block |
+| `inline code` | Colored |
+| Code blocks | Colored, indented block |
 | Headings | Bold, sized by level |
 | Blockquotes | Indented with prefix |
 | Lists | Bulleted / numbered |

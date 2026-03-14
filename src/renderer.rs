@@ -291,10 +291,15 @@ impl Renderer {
                 });
                 self.format_stack.retain(|f| !matches!(f, FormatFlag::Link(_)));
                 if let Some(url) = url {
-                    let style = self.theme.push_link_url();
-                    let reset = self.theme.full_reset();
-                    self.emit(&format!(" {}({}){}", style, url, reset));
-                    self.reapply_formats();
+                    if self.in_table() {
+                        // In table: emit plain text (ANSI corrupts column widths)
+                        self.emit(&format!(" ({})", url));
+                    } else {
+                        let style = self.theme.push_link_url();
+                        let reset = self.theme.full_reset();
+                        self.emit(&format!(" {}({}){}", style, url, reset));
+                        self.reapply_formats();
+                    }
                 }
             }
             TagEnd::Image => {}
