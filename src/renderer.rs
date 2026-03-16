@@ -1,6 +1,6 @@
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, HeadingLevel, Options, Parser, Tag, TagEnd};
 use crossterm::terminal;
-use comfy_table::{Table, Cell};
+use comfy_table::{Table, Cell, ContentArrangement};
 use crate::theme::Theme;
 
 #[derive(Clone, Debug)]
@@ -280,7 +280,7 @@ impl Renderer {
             }
             TagEnd::Table => {
                 if let Some(state) = self.table.take() {
-                    let rendered = render_table(state);
+                    let rendered = render_table(state, Self::terminal_width());
                     self.emit_raw(&rendered);
                     self.emit_raw("\n");
                 }
@@ -337,9 +337,11 @@ fn heading_level(level: HeadingLevel) -> u32 {
     }
 }
 
-fn render_table(state: TableState) -> String {
+fn render_table(state: TableState, width: usize) -> String {
     let mut table = Table::new();
     table.load_preset("││──├─┼┤│    ┬┴╭╮╰╯");
+    table.set_content_arrangement(ContentArrangement::Dynamic);
+    table.set_width(width as u16);
 
     for (i, alignment) in state.alignments.iter().enumerate() {
         let comfy_align = match alignment {
@@ -363,4 +365,66 @@ fn render_table(state: TableState) -> String {
 
 pub fn render(content: &str, color: bool) -> String {
     Renderer::render(content, color)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_state(header: &[&str], rows: &[&[&str]], alignments: &[Alignment]) -> TableState {
+        TableState {
+            alignments: alignments.to_vec(),
+            header: header.iter().map(|s| s.to_string()).collect(),
+            rows: rows
+                .iter()
+                .map(|r| r.iter().map(|s| s.to_string()).collect())
+                .collect(),
+            current_row: vec![],
+            in_header: false,
+        }
+    }
+
+    #[test]
+    fn table_renders_header_and_rows() {
+        let state = make_state(
+            &["Name", "Value"],
+            &[&["foo", "bar"], &["baz", "qux"]],
+            &[Alignment::Left, Alignment::Right],
+        );
+        let output = render_table(state, 80);
+        assert!(output.contains("Name"));
+        assert!(output.contains("Value"));
+        assert!(output.contains("foo"));
+        assert!(output.contains("qux"));
+    }
+
+    #[test]
+    fn table_does_not_exceed_width() {
+        let long = "a very long piece of content that would normally overflow the terminal";
+        let state = make_state(
+            &["Column A", "Column B", "Column C"],
+            &[&[long, long, long]],
+            &[Alignment::None, Alignment::None, Alignment::None],
+        );
+        let output = render_table(state, 80);
+        for line in output.lines() {
+            let w = line.chars().count();
+            assert!(w <= 80, "line exceeded width of 80: ({} chars) {:?}", w, line);
+        }
+    }
+
+    #[test]
+    fn narrow_table_does_not_exceed_width() {
+        let long = "another long string that is definitely wider than forty characters total";
+        let state = make_state(
+            &["Left", "Right"],
+            &[&[long, long]],
+            &[Alignment::Left, Alignment::Right],
+        );
+        let output = render_table(state, 40);
+        for line in output.lines() {
+            let w = line.chars().count();
+            assert!(w <= 40, "line exceeded width of 40: ({} chars) {:?}", w, line);
+        }
+    }
 }
