@@ -45,6 +45,7 @@ Render one or more Markdown files to the terminal. Multiple files are separated 
 mdcat README.md
 mdcat doc1.md doc2.md doc3.md
 mdcat --no-color README.md
+mdcat --color=always README.md | less -R
 ```
 
 Pipe-friendly — color is automatically disabled when stdout is not a TTY:
@@ -53,11 +54,18 @@ Pipe-friendly — color is automatically disabled when stdout is not a TTY:
 mdcat README.md | less
 ```
 
+Use `--color=always` to force color through a pipe:
+
+```sh
+mdcat README.md --color=always | less -R
+```
+
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `--no-color` | Disable colored/styled output |
+| `--color=<when>` | Control color output: `always`, `auto` (default), or `never` |
+| `--no-color` | Disable colored/styled output (equivalent to `--color=never`) |
 | `--help` | Print help information |
 
 ### Environment Variables
@@ -85,4 +93,7 @@ NO_COLOR=1 mdcat README.md
 
 # Pipe to a pager (color auto-disabled)
 mdcat README.md | less
+
+# Force color through a pipe
+mdcat README.md --color=always | less -R
 ```

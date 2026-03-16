@@ -427,4 +427,16 @@ mod tests {
             assert!(w <= 40, "line exceeded width of 40: ({} chars) {:?}", w, line);
         }
     }
+
+    #[test]
+    fn render_with_color_emits_ansi() {
+        let out = render("**bold**", true);
+        assert!(out.contains('\x1b'), "expected ANSI escapes with color=true");
+    }
+
+    #[test]
+    fn render_without_color_has_no_ansi() {
+        let out = render("**bold**", false);
+        assert!(!out.contains('\x1b'), "expected no ANSI escapes with color=false");
+    }
 }

@@ -6,6 +6,14 @@ use std::process;
 mod renderer;
 mod theme;
 
+#[derive(Clone, Copy, Default, clap::ValueEnum)]
+enum ColorMode {
+    Always,
+    #[default]
+    Auto,
+    Never,
+}
+
 #[derive(Parser)]
 #[command(name = "mdcat", about = "Render markdown files to the terminal")]
 struct Cli {
@@ -15,16 +23,24 @@ struct Cli {
     /// Disable color output
     #[arg(long)]
     no_color: bool,
+
+    /// When to use color: always, auto, or never [default: auto]
+    #[arg(long, value_enum, default_value_t = ColorMode::Auto)]
+    color: ColorMode,
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    let no_color = std::env::var_os("NO_COLOR").is_some()
-        || cli.no_color
-        || !io::stdout().is_terminal();
-
-    let color = !no_color;
+    let color = match cli.color {
+        ColorMode::Always => true,
+        ColorMode::Never => false,
+        ColorMode::Auto => {
+            !cli.no_color
+                && std::env::var_os("NO_COLOR").is_none()
+                && io::stdout().is_terminal()
+        }
+    };
 
     if cli.files.is_empty() {
         eprintln!("mdcat: no input files specified");
