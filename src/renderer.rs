@@ -1,7 +1,7 @@
-use pulldown_cmark::{Alignment, CodeBlockKind, Event, HeadingLevel, Options, Parser, Tag, TagEnd};
-use crossterm::terminal;
-use comfy_table::{Table, Cell, ContentArrangement};
 use crate::theme::Theme;
+use comfy_table::{Cell, ContentArrangement, Table};
+use crossterm::terminal;
+use pulldown_cmark::{Alignment, CodeBlockKind, Event, HeadingLevel, Options, Parser, Tag, TagEnd};
 
 #[derive(Clone, Debug)]
 enum FormatFlag {
@@ -207,7 +207,8 @@ impl Renderer {
                 self.text_buf = Some(String::new());
             }
             Tag::Link { dest_url, .. } => {
-                self.format_stack.push(FormatFlag::Link(dest_url.to_string()));
+                self.format_stack
+                    .push(FormatFlag::Link(dest_url.to_string()));
             }
             Tag::Image { .. } => {}
             _ => {}
@@ -217,7 +218,8 @@ impl Renderer {
     fn on_end(&mut self, tag: TagEnd) {
         match tag {
             TagEnd::Heading(_) => {
-                self.format_stack.retain(|f| !matches!(f, FormatFlag::Heading(_)));
+                self.format_stack
+                    .retain(|f| !matches!(f, FormatFlag::Heading(_)));
                 let reset = self.theme.full_reset();
                 self.emit_raw(&format!("{}\n", reset));
             }
@@ -231,13 +233,15 @@ impl Renderer {
                 }
             }
             TagEnd::Emphasis => {
-                self.format_stack.retain(|f| !matches!(f, FormatFlag::Italic));
+                self.format_stack
+                    .retain(|f| !matches!(f, FormatFlag::Italic));
                 if !self.in_table() {
                     self.reapply_formats();
                 }
             }
             TagEnd::BlockQuote(_) => {
-                self.format_stack.retain(|f| !matches!(f, FormatFlag::BlockQuote));
+                self.format_stack
+                    .retain(|f| !matches!(f, FormatFlag::BlockQuote));
                 let reset = self.theme.full_reset();
                 self.emit_raw(&format!("{}\n", reset));
             }
@@ -287,9 +291,14 @@ impl Renderer {
             }
             TagEnd::Link => {
                 let url = self.format_stack.iter().rev().find_map(|f| {
-                    if let FormatFlag::Link(u) = f { Some(u.clone()) } else { None }
+                    if let FormatFlag::Link(u) = f {
+                        Some(u.clone())
+                    } else {
+                        None
+                    }
                 });
-                self.format_stack.retain(|f| !matches!(f, FormatFlag::Link(_)));
+                self.format_stack
+                    .retain(|f| !matches!(f, FormatFlag::Link(_)));
                 if let Some(url) = url {
                     if self.in_table() {
                         // In table: emit plain text (ANSI corrupts column widths)
@@ -349,7 +358,9 @@ fn render_table(state: TableState, width: usize) -> String {
             Alignment::Center => comfy_table::CellAlignment::Center,
             Alignment::Right => comfy_table::CellAlignment::Right,
         };
-        table.column_mut(i).map(|c| c.set_cell_alignment(comfy_align));
+        table
+            .column_mut(i)
+            .map(|c| c.set_cell_alignment(comfy_align));
     }
 
     if !state.header.is_empty() {
@@ -409,7 +420,12 @@ mod tests {
         let output = render_table(state, 80);
         for line in output.lines() {
             let w = line.chars().count();
-            assert!(w <= 80, "line exceeded width of 80: ({} chars) {:?}", w, line);
+            assert!(
+                w <= 80,
+                "line exceeded width of 80: ({} chars) {:?}",
+                w,
+                line
+            );
         }
     }
 
@@ -424,19 +440,30 @@ mod tests {
         let output = render_table(state, 40);
         for line in output.lines() {
             let w = line.chars().count();
-            assert!(w <= 40, "line exceeded width of 40: ({} chars) {:?}", w, line);
+            assert!(
+                w <= 40,
+                "line exceeded width of 40: ({} chars) {:?}",
+                w,
+                line
+            );
         }
     }
 
     #[test]
     fn render_with_color_emits_ansi() {
         let out = render("**bold**", true);
-        assert!(out.contains('\x1b'), "expected ANSI escapes with color=true");
+        assert!(
+            out.contains('\x1b'),
+            "expected ANSI escapes with color=true"
+        );
     }
 
     #[test]
     fn render_without_color_has_no_ansi() {
         let out = render("**bold**", false);
-        assert!(!out.contains('\x1b'), "expected no ANSI escapes with color=false");
+        assert!(
+            !out.contains('\x1b'),
+            "expected no ANSI escapes with color=false"
+        );
     }
 }

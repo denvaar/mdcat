@@ -1,4 +1,4 @@
-use crossterm::style::{Attribute, Color, SetAttribute, SetForegroundColor, ResetColor};
+use crossterm::style::{Attribute, Color, ResetColor, SetAttribute, SetForegroundColor};
 use std::fmt::Write as FmtWrite;
 
 pub struct Theme {
@@ -11,7 +11,11 @@ impl Theme {
     }
 
     fn ansi(&self, s: String) -> String {
-        if self.color { s } else { String::new() }
+        if self.color {
+            s
+        } else {
+            String::new()
+        }
     }
 
     pub fn begin_heading(&self, level: u32) -> String {
@@ -21,20 +25,29 @@ impl Theme {
         let mut s = String::new();
         match level {
             1 => {
-                let _ = write!(s, "{}{}{}",
+                let _ = write!(
+                    s,
+                    "{}{}{}",
                     SetForegroundColor(Color::Cyan),
                     SetAttribute(Attribute::Bold),
-                    SetAttribute(Attribute::Underlined));
+                    SetAttribute(Attribute::Underlined)
+                );
             }
             2 => {
-                let _ = write!(s, "{}{}",
+                let _ = write!(
+                    s,
+                    "{}{}",
                     SetForegroundColor(Color::Cyan),
-                    SetAttribute(Attribute::Bold));
+                    SetAttribute(Attribute::Bold)
+                );
             }
             _ => {
-                let _ = write!(s, "{}{}",
+                let _ = write!(
+                    s,
+                    "{}{}",
                     SetForegroundColor(Color::Blue),
-                    SetAttribute(Attribute::Bold));
+                    SetAttribute(Attribute::Bold)
+                );
             }
         }
         s
@@ -52,18 +65,22 @@ impl Theme {
         if !self.color {
             return String::new();
         }
-        format!("{}{}",
+        format!(
+            "{}{}",
             SetForegroundColor(Color::DarkGrey),
-            SetAttribute(Attribute::Italic))
+            SetAttribute(Attribute::Italic)
+        )
     }
 
     pub fn push_link_url(&self) -> String {
         if !self.color {
             return String::new();
         }
-        format!("{}{}",
+        format!(
+            "{}{}",
             SetForegroundColor(Color::Blue),
-            SetAttribute(Attribute::Underlined))
+            SetAttribute(Attribute::Underlined)
+        )
     }
 
     pub fn full_reset(&self) -> String {
@@ -77,10 +94,12 @@ impl Theme {
         if !self.color {
             return text.to_string();
         }
-        format!("{}{}{}",
+        format!(
+            "{}{}{}",
             SetForegroundColor(Color::Green),
             text,
-            self.full_reset())
+            self.full_reset()
+        )
     }
 
     pub fn format_rule(&self, width: usize) -> String {
@@ -88,19 +107,23 @@ impl Theme {
         if !self.color {
             return line;
         }
-        format!("{}{}{}",
+        format!(
+            "{}{}{}",
             SetForegroundColor(Color::DarkGrey),
             line,
-            self.full_reset())
+            self.full_reset()
+        )
     }
 
     pub fn format_code_block(&self, _lang: &str, code: &str) -> String {
         if !self.color {
             return code.to_string();
         }
-        format!("{}{}{}",
+        format!(
+            "{}{}{}",
             SetForegroundColor(Color::Green),
             code,
-            self.full_reset())
+            self.full_reset()
+        )
     }
 }

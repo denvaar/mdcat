@@ -11,7 +11,10 @@ fn color_always_emits_ansi() {
         .output()
         .expect("failed to run mdcat");
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains('\x1b'), "--color=always should emit ANSI codes");
+    assert!(
+        stdout.contains('\x1b'),
+        "--color=always should emit ANSI codes"
+    );
 }
 
 #[test]
@@ -21,7 +24,10 @@ fn color_never_has_no_ansi() {
         .output()
         .expect("failed to run mdcat");
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(!stdout.contains('\x1b'), "--color=never should not emit ANSI codes");
+    assert!(
+        !stdout.contains('\x1b'),
+        "--color=never should not emit ANSI codes"
+    );
 }
 
 #[test]
@@ -31,7 +37,10 @@ fn no_color_flag_has_no_ansi() {
         .output()
         .expect("failed to run mdcat");
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(!stdout.contains('\x1b'), "--no-color should not emit ANSI codes");
+    assert!(
+        !stdout.contains('\x1b'),
+        "--no-color should not emit ANSI codes"
+    );
 }
 
 #[test]

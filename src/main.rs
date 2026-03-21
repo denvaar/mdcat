@@ -36,9 +36,7 @@ fn main() {
         ColorMode::Always => true,
         ColorMode::Never => false,
         ColorMode::Auto => {
-            !cli.no_color
-                && std::env::var_os("NO_COLOR").is_none()
-                && io::stdout().is_terminal()
+            !cli.no_color && std::env::var_os("NO_COLOR").is_none() && io::stdout().is_terminal()
         }
     };
 
