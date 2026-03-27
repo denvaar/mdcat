@@ -168,6 +168,9 @@ impl Renderer {
                 self.code_block_buf = Some(String::new());
             }
             Tag::List(start) => {
+                if self.list_depth() > 0 {
+                    self.emit_raw("\n");
+                }
                 self.list_stack.push(start);
             }
             Tag::Item => {
@@ -331,6 +334,7 @@ impl Renderer {
         } else {
             let formatted = self.theme.format_inline_code(text);
             self.emit(&formatted);
+            self.reapply_formats();
         }
     }
 }
@@ -464,6 +468,33 @@ mod tests {
         assert!(
             !out.contains('\x1b'),
             "expected no ANSI escapes with color=false"
+        );
+    }
+
+    #[test]
+    fn inline_code_in_blockquote_stays_on_one_line() {
+        let md = "> before `code` after";
+        let out = render(md, false);
+        let line = out
+            .lines()
+            .find(|l| l.contains("before"))
+            .expect("no line with 'before'");
+        assert!(line.contains("code"), "code not on same line as before");
+        assert!(line.contains("after"), "after not on same line as before");
+    }
+
+    #[test]
+    fn nested_list_items_on_separate_lines() {
+        let md = "- parent\n  - child";
+        let out = render(md, false);
+        let parent_line = out
+            .lines()
+            .find(|l| l.contains("parent"))
+            .expect("no line with 'parent'");
+        assert!(
+            !parent_line.contains("child"),
+            "child appeared on same line as parent: {:?}",
+            parent_line
         );
     }
 }
