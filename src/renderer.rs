@@ -327,9 +327,16 @@ impl Renderer {
         }
     }
 
+    fn in_heading(&self) -> bool {
+        self.format_stack
+            .iter()
+            .any(|f| matches!(f, FormatFlag::Heading(_)))
+    }
+
     fn on_inline_code(&mut self, text: &str) {
-        if self.in_table() {
+        if self.in_table() || self.in_heading() {
             // In table: emit plain text (ANSI corrupts column widths)
+            // In heading: emit plain text to preserve heading color
             self.emit(text);
         } else {
             let formatted = self.theme.format_inline_code(text);
